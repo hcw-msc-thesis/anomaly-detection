@@ -12,7 +12,7 @@ from anomalib.data.dataclasses import ImageBatch
 from anomalib.engine import Engine
 from torch.utils.data import DataLoader, Dataset
 
-from models.unet import (
+from unet.unet import (
     UNetAnomalib,
 )
 
@@ -44,7 +44,7 @@ def parse_args(argv=None):
     p.add_argument("--sample_every", type=int, default=5,
                    help="Display per epoch sample")
     p.add_argument("--workers", type=int, default=2)
-    p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--seed", type=int, default=0)
     return p.parse_args(argv)
 
 

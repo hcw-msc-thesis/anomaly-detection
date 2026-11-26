@@ -1,0 +1,147 @@
+{
+  "uid": "mvtec-results",
+  "title": "MVTec 3D-AD results",
+  "description": "Official evaluation results of the combined U-Net + FPFH model",
+  "editable": false,
+  "graphTooltip": 0,
+  "schemaVersion": 39,
+  "version": 1,
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": { "hidden": true },
+  "refresh": "",
+  "tags": [],
+  "links": [],
+  "annotations": { "list": [] },
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "category",
+        "label": "Category",
+        "datasource": { "type": "frser-sqlite-datasource", "uid": "results" },
+        "query": "SELECT category FROM metrics ORDER BY category",
+        "definition": "SELECT category FROM metrics ORDER BY category",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "options": [],
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Mean over categories",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 6 },
+      "datasource": { "type": "frser-sqlite-datasource", "uid": "results" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "frser-sqlite-datasource", "uid": "results" },
+          "queryType": "table",
+          "rawQueryText": "SELECT AVG(au_pro) AS \"AU-PRO\", AVG(au_roc) AS \"I-AUROC\" FROM metrics",
+          "queryText": "SELECT AVG(au_pro) AS \"AU-PRO\", AVG(au_roc) AS \"I-AUROC\" FROM metrics",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "decimals": 3, "min": 0, "max": 1, "color": { "mode": "fixed", "fixedColor": "blue" } },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "title": "About these numbers",
+      "gridPos": { "x": 8, "y": 0, "w": 16, "h": 6 },
+      "options": {
+        "mode": "markdown",
+        "content": "Computed by MVTec's official evaluation script on the MVTec 3D-AD test set.\n\n- **I-AUROC** (image level): how well each part's anomaly score (its map's highest pixel) ranks defective parts above good ones. 1 = perfect, 0.5 = chance.\n- **AU-PRO** (pixel level, up to a 30% false positive rate, normalised to 1): how much of each defect the anomaly map covers before too many good pixels are flagged."
+      }
+    },
+    {
+      "id": 3,
+      "type": "table",
+      "title": "Per category",
+      "gridPos": { "x": 0, "y": 6, "w": 8, "h": 12 },
+      "datasource": { "type": "frser-sqlite-datasource", "uid": "results" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "frser-sqlite-datasource", "uid": "results" },
+          "queryType": "table",
+          "rawQueryText": "SELECT category AS \"Category\", au_pro AS \"AU-PRO\", au_roc AS \"I-AUROC\" FROM (SELECT category, au_pro, au_roc, 0 AS ord FROM metrics UNION ALL SELECT 'mean', AVG(au_pro), AVG(au_roc), 1 FROM metrics) ORDER BY ord, category",
+          "queryText": "SELECT category AS \"Category\", au_pro AS \"AU-PRO\", au_roc AS \"I-AUROC\" FROM (SELECT category, au_pro, au_roc, 0 AS ord FROM metrics UNION ALL SELECT 'mean', AVG(au_pro), AVG(au_roc), 1 FROM metrics) ORDER BY ord, category",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": { "defaults": { "decimals": 3 }, "overrides": [] },
+      "options": { "showHeader": true, "cellHeight": "sm" }
+    },
+    {
+      "id": 4,
+      "type": "barchart",
+      "title": "AU-PRO and I-AUROC per category",
+      "gridPos": { "x": 8, "y": 6, "w": 16, "h": 12 },
+      "datasource": { "type": "frser-sqlite-datasource", "uid": "results" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "frser-sqlite-datasource", "uid": "results" },
+          "queryType": "table",
+          "rawQueryText": "SELECT category, au_pro AS \"AU-PRO\", au_roc AS \"I-AUROC\" FROM metrics ORDER BY category",
+          "queryText": "SELECT category, au_pro AS \"AU-PRO\", au_roc AS \"I-AUROC\" FROM metrics ORDER BY category",
+          "timeColumns": []
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "decimals": 3, "min": 0, "max": 1, "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "options": {
+        "xField": "category",
+        "orientation": "vertical",
+        "showValue": "auto",
+        "groupWidth": 0.7,
+        "barWidth": 0.9,
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      }
+    },
+    {
+      "id": 5,
+      "type": "nline-plotlyjs-panel",
+      "title": "Image-level ROC: $category",
+      "repeat": "category",
+      "repeatDirection": "h",
+      "maxPerRow": 5,
+      "gridPos": { "x": 0, "y": 18, "w": 24, "h": 10 },
+      "datasource": { "type": "frser-sqlite-datasource", "uid": "results" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "frser-sqlite-datasource", "uid": "results" },
+          "queryType": "table",
+          "rawQueryText": "SELECT r.fpr, r.tpr, m.au_roc FROM roc r JOIN metrics m ON m.category = r.category WHERE r.category IN (${category:sqlstring}) ORDER BY r.point",
+          "queryText": "SELECT r.fpr, r.tpr, m.au_roc FROM roc r JOIN metrics m ON m.category = r.category WHERE r.category IN (${category:sqlstring}) ORDER BY r.point",
+          "timeColumns": []
+        }
+      ],
+      "options": {
+        "script": "const frame = data.series[0];\nconst column = (name) => {\n  const field = frame ? frame.fields.find((f) => f.name === name) : null;\n  return field ? Array.from(field.values.toArray ? field.values.toArray() : field.values) : [];\n};\nconst fpr = column('fpr'), tpr = column('tpr'), auroc = column('au_roc')[0];\nconst axis = { type: 'linear', autorange: false, range: [0, 1], dtick: 0.25, constrain: 'domain', zeroline: false };\nreturn {\n  data: [\n    { x: [0, 1], y: [0, 1], mode: 'lines', line: { dash: 'dash', width: 1, color: 'gray' }, name: 'chance', hoverinfo: 'skip' },\n    { x: fpr, y: tpr, mode: 'lines', line: { width: 2 }, name: 'ROC',\n      hovertemplate: 'FPR %{x:.3f}<br>TPR %{y:.3f}<extra></extra>' }\n  ],\n  layout: {\n    title: { text: auroc === undefined ? '' : 'I-AUROC ' + auroc.toFixed(3), font: { size: 13 } },\n    showlegend: false,\n    margin: { l: 45, r: 10, t: 30, b: 40 },\n    xaxis: Object.assign({ title: { text: 'False positive rate' } }, axis),\n    yaxis: Object.assign({ title: { text: 'True positive rate' }, scaleanchor: 'x', scaleratio: 1 }, axis)\n  },\n  config: { displayModeBar: false }\n};",
+        "onclick": ""
+      }
+    }
+  ]
+}

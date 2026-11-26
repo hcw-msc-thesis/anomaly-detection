@@ -11,7 +11,7 @@ from anomalib.data import MVTec3D
 from anomalib.engine import Engine
 from torch.utils.data import DataLoader
 
-from models.fpfh import (
+from fpfh.fpfh import (
     FPFHAnomalib,
 )
 
@@ -37,7 +37,7 @@ def parse_args(argv=None):
                    help="Compute FPFH with the neighbour counts above times each of these and join them")
     p.add_argument("--min_coverage", type=float, default=0.5,
                    help="Skip patches with less than this fraction of object pixels")
-    p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--seed", type=int, default=0)
     p.add_argument("--out_dir", default="./checkpoints_fpfh",
                    help="Directory the bank goes in <out_dir>/<category>/")
     return p.parse_args(argv)

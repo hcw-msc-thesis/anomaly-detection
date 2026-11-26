@@ -25,8 +25,8 @@ from torch.utils.data import DataLoader
 from torchvision.transforms.functional import gaussian_blur
 from tqdm import tqdm
 
-from models.fpfh import FPFHAnomalib
-from models.unet import UNetAnomalib, random_block_mask
+from fpfh.fpfh import FPFHAnomalib
+from unet.unet import UNetAnomalib, random_block_mask
 from utils.crop_rotate import undo_transformations
 from utils.unet_errors import unet_error
 
@@ -58,7 +58,10 @@ def parse_args(argv=None):
     p.add_argument("--unet_n_masks", type=int, default=4,
                        help="U-Net: average this many different block layouts per block size "
                             "(see detect_unet.error_channel_maps); slower")
+    p.add_argument("--weight_unet", type=float, default=1)
+    p.add_argument("--weight_fpfh", type=float, default=1)
     p.add_argument("--out_dir", default="./heatmaps")
+    p.add_argument("--seed", default=0, type=int)
     return p.parse_args(argv)
 
 
@@ -200,8 +203,8 @@ def export_heatmaps(
     datamodule = MVTec3D(
         root=dataset_root,
         category=category,
-        train_batch_size=8,
-        eval_batch_size=8,
+        train_batch_size=16,
+        eval_batch_size=16,
         num_workers=0,
         seed=seed
     )
@@ -278,6 +281,9 @@ def main(argv=None):
                             unet_errors=args.unet_errors,
                             n_masks=args.unet_n_masks, 
                             uncertainty_pct=args.unet_unc_floor_pct,
+                            weight_unet=args.weight_unet,
+                            weight_fpfh=args.weight_fpfh,
+                            seed=args.seed
                             )
     else:
         export_heatmaps(category=args.category, 
@@ -287,18 +293,12 @@ def main(argv=None):
                         unet_errors=args.unet_errors,
                         n_masks=args.unet_n_masks, 
                         uncertainty_pct=args.unet_unc_floor_pct,
+                        weight_unet=args.weight_unet,
+                        weight_fpfh=args.weight_fpfh,
+                        seed=args.seed
                         )
 
 
 if __name__ == "__main__":
     main()
 
-
-
-
-#TODO
-
-# Add the error types
-# Be able to select the error types
-# Make sure this actually works properly
-# 
